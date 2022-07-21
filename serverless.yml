@@ -1,7 +1,4 @@
-
-
 service: abilityconcepts
-
 
 provider:
   name: aws
@@ -19,7 +16,7 @@ functions:
   s3FileUploader:
     handler: src/upload.handler
     name: s3-file-uploader
-    description: A lambda handler that uploads a file to an S3 bucket based on an API 
+    description: A lambda handler that uploads a file to an S3 bucket based on an API
     timeout: 60 # seconds
     memorySize: 128 # mb
     events:
@@ -41,5 +38,3 @@ resources:
       Properties:
         BucketName: ${self:custom.fileUploadBucketName}
         AccessControl: PublicRead
-
-

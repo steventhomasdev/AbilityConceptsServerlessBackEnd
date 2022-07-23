@@ -14,7 +14,7 @@ custom:
 
 functions:
   uploader:
-    handler: src/handler.handle
+    handler: src/upload.handle
     events:
       - http: POST /file/upload
     role: UploadRole

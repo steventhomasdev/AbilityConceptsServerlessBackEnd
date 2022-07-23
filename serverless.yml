@@ -3,30 +3,61 @@ service: abilityconcepts
 provider:
   name: aws
   runtime: nodejs16.x
+  apiGateway:
+  binaryMediaTypes:
+    - 'multipart/form-data'
   stage: dev
   region: us-east-2
-  
+
 custom:
   fileUploadBucketName: ${self:service}-bucket-${self:provider.stage}
 
 functions:
-  s3FileUploader:
-    handler: src/upload.handler
-    name: s3-file-uploader
-    description: A lambda handler that uploads a file to an S3 bucket based on an API
-    timeout: 60 # seconds
-    memorySize: 128 # mb
+  uploader:
+    handler: src/handler.handle
     events:
-      - http:
-          path: images
-          method: POST
+      - http: POST /file/upload
+    role: UploadRole
     environment:
-      FILE_UPLOAD_BUCKET_NAME: ${self:custom.fileUploadBucketName}
+      BUCKET: modusland${opt:stage, 'dev'}
 
 resources:
   Resources:
-    FileBucket:
+    ModuslandBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:custom.fileUploadBucketName}
+        BucketName: modusland
         AccessControl: PublicRead
+    UploadRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: upload-policy
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - s3:PutObject
+                    - s3:PutObjectAcl
+                  Resource:
+                    !Sub
+                      - "arn:aws:s3:::${BucketName}/*"
+                      - {BucketName: !Ref ModuslandBucket}
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    Fn::Sub:
+                      - arn:aws:logs:${Region}:${AccountId}:log-group:/aws/lambda/*:*:*
+                      - { Region: !Ref AWS::Region, AccountId: !Ref AWS::AccountId }

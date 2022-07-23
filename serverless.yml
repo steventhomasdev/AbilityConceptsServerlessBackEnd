@@ -4,8 +4,8 @@ provider:
   name: aws
   runtime: nodejs16.x
   apiGateway:
-  binaryMediaTypes:
-    - 'multipart/form-data'
+    binaryMediaTypes:
+      - 'multipart/form-data'
   stage: dev
   region: us-east-2
 
